@@ -6,6 +6,11 @@ export default class Slide {
     this.dist = { finalPosition: 0, startX: 0, movement: 0 }
   }
 
+  // Efeito de transição dos elementos do slide.
+  transition(active) {
+    this.slide.style.transition = active ? 'transform .3s' : '';
+  }
+
   //Método que faz mover o Slide.
   moveSlide(distX) {
     //Salvar a ultima distância.
@@ -31,6 +36,7 @@ export default class Slide {
       movetype = 'touchmove';
     }
     this.wrapper.addEventListener(movetype, this.onMove);
+    this.transition(false);
   }
 
   // Método que adiciona o evento move do mouse, ou seja, quando mover o mouse.
@@ -45,6 +51,19 @@ export default class Slide {
     const movetype = (event.type === 'mouseup') ? 'mousemove' : 'touchmove';
     this.wrapper.removeEventListener(movetype, this.onMove);
     this.dist.finalPosition = this.dist.movePosition;
+    this.transition(true);
+    this.changeSlideOnEnd();    
+  }
+
+  // Troca o slide quando acabar de mover o mouse.
+  changeSlideOnEnd() {
+    if (this.dist.movement > 120 && this.index.next !== undefined) {
+      this.activeNextSlide();
+    } else if (this.dist.movement < -120 && this.index.prev !== undefined) {
+      this.activePrevSlide(); 
+    } else {
+      this.changeSlide(this.index.active)
+    }
   }
 
   //Método que adiciona cada evento do slide.
@@ -86,6 +105,7 @@ export default class Slide {
       next: index === last ? undefined : index + 1,
     }
   }
+ 
   // Muda o slide de acordo com o index que é passado.
   changeSlide(index) {
     const activeSlide = this.slideArray[index]
@@ -94,9 +114,20 @@ export default class Slide {
     this.dist.finalPosition = activeSlide.position;
   }
 
+  // Ativar o Slide anterior.
+  activePrevSlide() {
+    if(this.index.prev !== undefined) this.changeSlide(this.index.prev);
+  }
+
+  // Ativar o Slide próximo.
+  activeNextSlide() {
+    if(this.index.next !== undefined) this.changeSlide(this.index.next);
+  }
+
   // Método que inicia a classe.
   init() {
     this.bindEvents();
+    this.transition(true);
     this.addSlideEvents(); 
     this.slidesConfig();
     return this;
